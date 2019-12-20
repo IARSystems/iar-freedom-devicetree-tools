@@ -190,7 +190,12 @@ void Device::emit_inline_def(Inline *func, std::string device) {
 void Device::emit_struct_pointer_begin(std::string type, std::string name,
                                        std::string ext) {
   os << "struct __metal_driver_" << type << " *" << name << ext
-     << " __attribute__((weak))  = {\n";
+     << "#ifndef __IAR_SYSTEMS_ICC__\n"
+     << " __attribute__((weak))\n"
+     << "#else\n"
+     << "__MD_EXTERNAL\n"
+     << "#endif\n"
+     << " = {\n";
 }
 void Device::emit_struct_pointer_element(std::string type, uint32_t id,
                                          std::string field,
@@ -247,14 +252,14 @@ std::string Device::platform_define_offset(node n, std::string suffix) {
  * "__metal_" namespace */
 void Device::emit_struct_decl(std::string type, const node &n) {
   emit_comment(n);
-  os << "extern struct __metal_driver_" << type << " __metal_dt_" << n.handle()
+  os << "__MD_EXTERNAL struct __metal_driver_" << type << " __metal_dt_" << n.handle()
      << ";\n\n";
 }
 
 void Device::emit_struct_decl(std::string type, std::string suffix,
                               const node &n) {
   emit_comment(n);
-  os << "extern struct __metal_driver_" << type << "_" << suffix
+  os << "__MD_EXTERNAL struct __metal_driver_" << type << "_" << suffix
      << " __metal_dt_" << n.handle() << "_" << suffix << ";\n\n";
 }
 
@@ -372,9 +377,14 @@ void Device::emit_struct_end(void) { os << "};\n\n"; }
 
 void Device::emit_struct_array_def_begin(std::string type, std::string name,
                                          std::string size) {
-  os << "/* Custom array definition */\n";
-  os << "struct __metal_driver_" << type << " __metal_dt_" << name
-     << "[ ] __attribute__((weak)) = {\n";
+  os << "/* Custom array definition */\n"
+     << "struct __metal_driver_" << type << " __metal_dt_" << name
+     << "#ifndef __IAR_SYSTEMS_ICC__\n"
+     << "[ ] __attribute__((weak))\n"
+     << "#else\n"
+     << "[ ] __MD_EXTERNAL\n"
+     << "#endif\n"
+     << " = {\n";
 }
 
 void Device::emit_struct_array_elem_node(const node &n) {

@@ -25,7 +25,7 @@ void memory::include_headers() { os << "#include <metal/memory.h>\n"; }
 
 void memory::declare_structs() {
   auto declare = [&](node n) {
-    os << "extern struct metal_memory __metal_dt_mem_" << n.handle() << ";\n\n";
+    os << "__MD_EXTERNAL struct metal_memory __metal_dt_mem_" << n.handle() << ";\n\n";
   };
 
   dtb.match(std::regex("sifive,sram0"), declare, std::regex("sifive,testram0"),
@@ -107,7 +107,12 @@ void memory::create_handles() {
   emit_def("__METAL_DT_MAX_MEMORIES", std::to_string(num_memories));
 
   os << "struct metal_memory *__metal_memory_table[]"
-     << " __attribute__((weak)) = {\n";
+     << "#ifndef __IAR_SYSTEMS_ICC__\n"
+     << " __attribute__((weak))"
+     << "#else\n"
+     << "__MD_EXTERNAL\n"
+     << "#endif\n"
+     << " = {\n";
 
   int i = 0;
   auto emit = [&](node n) {
