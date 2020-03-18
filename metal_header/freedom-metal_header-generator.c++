@@ -229,7 +229,7 @@ static void write_h_file(const fdt &dtb, fstream &os, std::string h_file,
   os << "#ifdef __NO_IAR_WEAK__\n";
   os << "#define __MD_EXTERNAL //\n";
   os << "#else\n";
-  os << "#define __MD_EXTERNAL __weak extern\n";
+  os << "#define __MD_EXTERNAL extern __weak\n";
   os << "#endif\n";
   os << "#else\n";
   os << "#define __MD_EXTERNAL extern\n";
