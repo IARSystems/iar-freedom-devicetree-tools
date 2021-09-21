@@ -106,13 +106,13 @@ void memory::define_structs() {
 void memory::create_handles() {
   emit_def("__METAL_DT_MAX_MEMORIES", std::to_string(num_memories));
 
-  os << "struct metal_memory *__metal_memory_table[]"
-     << "#ifndef __IAR_SYSTEMS_ICC__\n"
-     << " __attribute__((weak))"
+  os << "#ifndef __IAR_SYSTEMS_ICC__\n"
+     << "struct metal_memory *__metal_memory_table[]"
+     << " __attribute__((weak)) ={\n"
      << "#else\n"
-     << "__MD_EXTERNAL\n"
-     << "#endif\n"
-     << " = {\n";
+     << "__MD_EXTERNAL struct metal_memory"
+     << " *__metal_memory_table[] = {\n"
+     << "#endif\n";
 
   int i = 0;
   auto emit = [&](node n) {
