@@ -1,48 +1,87 @@
 #!/bin/bash
 
+usage() {
+    echo
+    echo "Usage:"
+    echo "$0 -d <design_repo> -t <tools_repo> -m <metal_repo>"
+    echo "Where:"
+    echo "<design-repo> is the full path to the repo containing the .dts" \
+    "design files"
+    echo "<tools-repo> is the full path to the freedom-devicetree-tools repo."
+    echo "<metal-repo> is the full path to the freedom-metal repo."
+    echo
+}
+
+help_message() {
+    echo
+    echo "Given the correct input, this script will generate the required"\
+    "header files necessary to build a project using the freedom-metal"\
+    "library."
+    echo "The generated files will be moved to the correct place in the"\
+    "freedom-metal repository. You should find the new generated files as:"
+    echo
+    echo "freedom-metal"
+    echo "└── metal"
+    echo "    ├── machine"
+    echo "    │   ├── inline.h"
+    echo "    |   └── platform.h"
+    echo "    └── machine.h"
+    usage
+}
+
 # Check input args and setup variables
-while getopts a:f:m: flag
+while getopts d:t:m:h flag
 do
     case "${flag}" in
-        a)
-            ARTIFACT_REPO=${OPTARG}
+        d)
+            DESIGN_REPO=${OPTARG}
             ;;
-        f)
+        t)
             FREEDOM_DEVICE_TOOLS_REPO=${OPTARG}
             ;;
         m)
             FREEDOM_METAL_REPO=${OPTARG}
             ;;
+        h)
+            help_message
+            exit 0
     esac
 done
 
-if [ -z ${ARTIFACT_REPO+x} ]; then
-    echo "Artifact repo must be set"
+if [ -z ${DESIGN_REPO+x} ]; then
+    echo
+    echo "Error: design repo must be set" 2>&1
+    usage
     exit 1
 fi
 if [ -z ${FREEDOM_DEVICE_TOOLS_REPO+x} ]; then
-    echo "freedom-device-tools repo must be set"
+    echo
+    echo "Error: freedom-device-tools repo must be set" 2>&1
+    usage
     exit 1
 fi
 if [ -z ${FREEDOM_METAL_REPO+x} ]; then
-    echo "freedom-metal repo must be set"
+    echo
+    echo "Error: freedom-metal repo must be set" 2>&1
+    usage
     exit 1
 fi
 
-DESIGN_ARTY_FOLDER=${ARTIFACT_REPO}/freedom-e-sdk/bsp/design-arty
-DTS_FILE=${DESIGN_ARTY_FOLDER}/design.dts
-DTB_FILE=${DESIGN_ARTY_FOLDER}/design.dtb
+DTS_FILE=${DESIGN_REPO}/design.dts
+DTB_FILE=${DESIGN_REPO}/design.dtb
 if [[ -f "${DTB_FILE}" ]]; then
     rm ${DTB_FILE}
 fi
 
 #Create DTB from DTS
-cd ${DESIGN_ARTY_FOLDER}
+cd ${DESIGN_REPO}
 dtc -I dts -o dtb -o ${DTB_FILE} ${DTS_FILE}
 
 #Generate device header files from the .dtb
-${FREEDOM_DEVICE_TOOLS_REPO}/freedom-metal_header-generator -d ${DTB_FILE} -o machine.h
-${FREEDOM_DEVICE_TOOLS_REPO}/freedom-bare_header-generator -d ${DTB_FILE} -o platform.h
+${FREEDOM_DEVICE_TOOLS_REPO}/freedom-metal_header-generator\
+ -d ${DTB_FILE} -o machine.h
+${FREEDOM_DEVICE_TOOLS_REPO}/freedom-bare_header-generator\
+ -d ${DTB_FILE} -o platform.h
 
 #Create and move generated headers to output folder
 if [[ -d "./machine" ]]; then
