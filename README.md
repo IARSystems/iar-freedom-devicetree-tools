@@ -1,50 +1,59 @@
-# Device Tree Tools for the Freedom SDK
+# IAR flavoured Device Tree Tools for the Freedom SDK
 
-This project contains a handful of tools that are designed to aid
-embedded software developers to generate statically parameterized designs
-from Freedom platform device trees.  Help for the various tools can be
-found by passing the `--help` argument, to the tool once they have been
-built.
+This library is based on the 
+[SiFive Freedom Device Tree Tools library](https://github.com/sifive/freedom-devicetree-tools), 
+but has been modified to be work with the IAR toolchain. Check the SiFive
+repository for the original library documentation.
 
-If you're interested in using the tools then it's probably best to check
-out the Freedom SDK, which uses these tools to parameterize the Freedom
-METAL for the various targets that it can support.
+__The IAR flavoured Freedom Device Tree Tools library 
+is provided as-is, and there is no guarantee of its status and that it will be 
+maintained.__
 
-As a quick overview, here are the tools that are installed as part of
-this project:
+## Setup
+This library should be used to generate bare metal device files which is 
+needed in order to use the
+[IAR version of the Freedom Metal library](https://github.com/IARSystems/iar-freedom-metal).
 
-* `freedom-ldscript-generator`: Generates linker scripts that are
-  compatible with the Freedom METAL from a device tree.
-* `freedom-makeattributes-generator`: Generates Makefile attributes
-  (CFLAGS, LDFLAGS, etc) from a device tree.
-* `freedom-mee_header-generator`: Generates a METAL header
-  parameterization file, which allows the METAL to target the device
-  described by the given device tree.
-* `freedom-openocdcfg-generator`: Generates an OpenOCD configuration
-  file from a device tree.
-* `freedom-zephyrdtsfixup-generator`: Generates a dts.fixup configuration
-  file from a device tree. This is a temporary requirement of the Zephyr
-  RTOS project to support DTS-based driver configuration.
+To simplify the file generating process, IAR are providing a simple bash 
+script that do most of the steps automatically. The script can be found 
+at /scripts/metalify.sh and will need the path to this library, a path to the 
+IAR Freedom Metal library and a path to the device tree specific files that
+you aim to build for (the 
+[SiFive Freedom E SDK](https://github.com/sifive/freedom-e-sdk) 
+contain theese kind of files):
 
-## How to Build
+    $ ./scripts/metalify.sh -d /SiFive/fredom-e-sdk/bsp/freedom-e310-arty -t /SiFive/iar-freedom-devictree-tools -m /SiFive/iar-freedom-metal
 
-If you're just planning on using this project then you should use the
-latest tarball release, which is always available from the [GitHub
-releases
-page](https://github.com/sifive/freedom-ldscript-generator/releases).
-Builds are uploaded from Travis after they succeed.
+If everything is going as intended, the new generated files should now 
+populate the IAR Freedom Metal repo in the following fashion:
 
-### Ubuntu 16.04 LTS
+    freedom-metal
+    └── metal
+        ├── machine
+        │   ├── inline.h
+        |   └── platform.h
+        └── machine.h
 
-The following packages are necessary to build from a tarball
+## Run project from EWRISCV
+To use the IAR Freedom Metal library in your project you need to do the 
+following steps:
 
-* `build-essential`
-* `libfdt-dev`
-* `device-tree-compiler`
+1. Add the _freedom-metal_ folder as an additional include path (Project ->
+Options -> Static Analysis -> C/C++ Compiler -> Preprocessor)
 
-Additionally, the following packages are necessary to build from git
-sources:
+2. Define the following symbols (Project -> Options -> Static Analysis -> C/C++ Compiler -> Preprocessor):
 
-* `autoconf`
-* `automake`
-* `git`
+    \_\_asm__=asm
+
+    \_\_inline__=inline
+    
+    \_\_volatile__=volatile
+
+3. Override the linker entry symbol to __metal_enter (Project -> Options -> 
+Static Analysis -> Linker -> Library)
+
+4. Add all the files in the _freedom-metal/src_ folder (including drivers) to 
+the project
+
+(Note that step 3 above is not necessary if you are only building an sdk 
+library)
