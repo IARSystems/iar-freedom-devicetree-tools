@@ -33,27 +33,3 @@ populate the IAR Freedom Metal repo in the following fashion:
         │   ├── inline.h
         |   └── platform.h
         └── machine.h
-
-## Run project from EWRISCV
-To use the IAR Freedom Metal library in your project you need to do the 
-following steps:
-
-1. Add the _freedom-metal_ folder as an additional include path (Project ->
-Options -> Static Analysis -> C/C++ Compiler -> Preprocessor)
-
-2. Define the following symbols (Project -> Options -> Static Analysis -> C/C++ Compiler -> Preprocessor):
-
-    \_\_asm__=asm
-
-    \_\_inline__=inline
-    
-    \_\_volatile__=volatile
-
-3. Override the linker entry symbol to __metal_enter (Project -> Options -> 
-Static Analysis -> Linker -> Library)
-
-4. Add all the files in the _freedom-metal/src_ folder (including drivers) to 
-the project
-
-(Note that step 3 above is not necessary if you are only building an sdk 
-library)
